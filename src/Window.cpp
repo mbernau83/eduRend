@@ -1,7 +1,7 @@
 //
 // Win32 Window class
 //
-// Written by Oliver Öhrström
+// Written by Oliver ï¿½hrstrï¿½m
 //
 
 #include "Window.h"

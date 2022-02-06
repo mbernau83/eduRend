@@ -74,12 +74,23 @@ class OurTestScene : public Scene
 	//
 	Camera* camera;
 
+	Cube* cube;
 	QuadModel* quad;
 	OBJModel* sponza;
+	OBJModel* sun;
+	OBJModel* earth;
+	OBJModel* moon;
+	OBJModel* plane;
+
+
 
 	// Model-to-world transformation matrices
 	mat4f Msponza;
 	mat4f Mquad;
+	mat4f Msun;
+	mat4f Mearth;
+	mat4f Mmoon;
+	mat4f MmyPlane;
 
 	// World-to-view matrix
 	mat4f Mview;
@@ -91,6 +102,9 @@ class OurTestScene : public Scene
 	float angle_vel = fPI / 2;	// ...and its velocity (radians/sec)
 	float camera_vel = 5.0f;	// Camera movement velocity in units/s
 	float fps_cooldown = 0;
+	float earthAngle;
+	float moonAngle;
+	float totalTime;
 
 	void InitTransformationBuffer();
 

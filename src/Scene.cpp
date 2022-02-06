@@ -1,4 +1,5 @@
 
+#include <math.h>
 #include "Scene.h"
 
 Scene::Scene(
@@ -46,8 +47,18 @@ void OurTestScene::Init()
 	camera->moveTo({ 0, 0, 5 });
 
 	// Create objects
-	quad = new QuadModel(dxdevice, dxdevice_context);
+	//quad = new QuadModel(dxdevice, dxdevice_context);
+	cube = new Cube(dxdevice, dxdevice_context);
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
+	sun = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
+	earth = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
+	moon = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
+	plane = new OBJModel("assets/Trojan/Trojan.obj", dxdevice, dxdevice_context);
+
+	totalTime = 0;
+	earthAngle = 0;
+	moonAngle = 0;
+
 }
 
 //
@@ -68,11 +79,16 @@ void OurTestScene::Update(
 	if (input_handler->IsKeyPressed(Keys::Left) || input_handler->IsKeyPressed(Keys::A))
 		camera->move({ -camera_vel * dt, 0.0f, 0.0f });
 
+	camera->yaw += input_handler->GetMouseDeltaX() * dt * 10;
+	camera->pitch += input_handler->GetMouseDeltaY() * dt * 10;
+
 	// Now set/update object transformations
 	// This can be done using any sequence of transformation matrices,
 	// but the T*R*S order is most common; i.e. scale, then rotate, and then translate.
 	// If no transformation is desired, an identity matrix can be obtained 
 	// via e.g. Mquad = linalg::mat4f_identity; 
+
+	totalTime += dt;
 
 	// Quad model-to-world transformation
 	Mquad = mat4f::translation(0, 0, 0) *			// No translation
@@ -83,6 +99,30 @@ void OurTestScene::Update(
 	Msponza = mat4f::translation(0, -5, 0) *		 // Move down 5 units
 		mat4f::rotation(fPI / 2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
 		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
+	
+	// Plane model-to-world transformation
+	MmyPlane = mat4f::translation(0, 3, 0) *
+		mat4f::rotation(0, totalTime, 0) *
+		mat4f::scaling(.3f);
+
+	// Sphere (sun) model-to-world transformation
+	Msun = mat4f::translation(0, 2, 0) *
+		mat4f::rotation(0, totalTime, 0) *
+		mat4f::scaling(.3f);
+
+	std::cout << std::sin(totalTime * 10) << std::endl;
+
+	// Sphere (earth) model-to-world transformation M1 * M2
+	Mearth = Msun * (mat4f::translation(0, 0, 3) *
+		mat4f::rotation(0,  -1 * std::abs(6 * totalTime), 0) *
+		mat4f::scaling(.5));
+	
+	// Sphere (moon) model-to-world transformation M1 * M2 * M3
+	Mmoon = Mearth * mat4f::translation(0, 0, 2) *
+		mat4f::rotation(0, 0, 0) *
+		mat4f::scaling(.5f);
+
+
 
 	// Increment the rotation angle.
 	angle += angle_vel * dt;
@@ -92,7 +132,7 @@ void OurTestScene::Update(
 	if (fps_cooldown < 0.0)
 	{
 		std::cout << "fps " << (int)(1.0f / dt) << std::endl;
-//		printf("fps %i\n", (int)(1.0f / dt));
+		// printf("fps %i\n", (int)(1.0f / dt));
 		fps_cooldown = 2.0;
 	}
 }
@@ -109,9 +149,29 @@ void OurTestScene::Render()
 	Mview = camera->get_WorldToViewMatrix();
 	Mproj = camera->get_ProjectionMatrix();
 
-	// Load matrices + the Quad's transformation to the device and render it
+	// Load matrices + the Cube's transformation to the device and render it
 	UpdateTransformationBuffer(Mquad, Mview, Mproj);
-	quad->Render();
+	cube->Render();
+
+	// Load matrices + the Cube's transformation to the device and render it
+	UpdateTransformationBuffer(Msun, Mview, Mproj);
+	sun->Render();
+
+	// Load matrices + the Cube's transformation to the device and render it
+	UpdateTransformationBuffer(Mearth, Mview, Mproj);
+	earth->Render();
+
+	// Load matrices + the Cube's transformation to the device and render it
+	UpdateTransformationBuffer(Mmoon, Mview, Mproj);
+	moon->Render();
+
+	// Load matrices + the Cube's transformation to the device and render it
+	UpdateTransformationBuffer(MmyPlane, Mview, Mproj);
+	plane->Render();
+
+	//// Load matrices + the Quad's transformation to the device and render it
+	//UpdateTransformationBuffer(Mquad, Mview, Mproj);
+	//quad->Render();
 
 	// Load matrices + Sponza's transformation to the device and render it
 	UpdateTransformationBuffer(Msponza, Mview, Mproj);
@@ -120,6 +180,7 @@ void OurTestScene::Render()
 
 void OurTestScene::Release()
 {
+	SAFE_DELETE(cube);
 	SAFE_DELETE(quad);
 	SAFE_DELETE(sponza);
 	SAFE_DELETE(camera);
