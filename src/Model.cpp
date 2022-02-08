@@ -59,7 +59,7 @@ Cube::Cube(
 	v8.Pos = { -0.5f, -0.5f, -0.5f };
 	v8.Normal = { 0, -1, 0 };
 	v8.TexCoord = { 0, 0 };
-	v9.Pos = { 0.5f, -0.5f, 0.5f };
+	v9.Pos = { 0.5f, -0.5f, -0.5f };
 	v9.Normal = { 0, -1, 0 };
 	v9.TexCoord = { 0, 1 };
 	v10.Pos = {0.5f, -0.5f, 0.5f };

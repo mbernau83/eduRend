@@ -122,8 +122,6 @@ void OurTestScene::Update(
 		mat4f::rotation(0, 0, 0) *
 		mat4f::scaling(.5f);
 
-
-
 	// Increment the rotation angle.
 	angle += angle_vel * dt;
 

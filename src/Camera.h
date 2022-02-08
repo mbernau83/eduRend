@@ -80,7 +80,7 @@ public:
 		mat4f up_down = get_RotationMatrix(0, 0, pitch);
 		//up_down.transpose(); //inverts, but I dont like it :-)
 		
-		return up_down * side_side * mat4f::translation(-position);
+		return  mat4f::translation(-position) * up_down * side_side;
 	}
 
 	// Matrix transforming from View space to Clip space
