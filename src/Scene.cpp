@@ -29,7 +29,9 @@ OurTestScene::OurTestScene(
 	Scene(dxdevice, dxdevice_context, window_width, window_height)
 { 
 	InitTransformationBuffer();
-	// + init other CBuffers
+	InitTransformBufferCam();
+	InitTransformBufferLight();
+		// + init other CBuffers
 }
 
 //
@@ -69,26 +71,16 @@ void OurTestScene::Update(
 	float dt,
 	InputHandler* input_handler)
 {
-	// Basic camera control
-	if (input_handler->IsKeyPressed(Keys::Up) || input_handler->IsKeyPressed(Keys::W))
-		camera->move({ 0.0f, 0.0f, -camera_vel * dt });
-	if (input_handler->IsKeyPressed(Keys::Down) || input_handler->IsKeyPressed(Keys::S))
-		camera->move({ 0.0f, 0.0f, camera_vel * dt });
-	if (input_handler->IsKeyPressed(Keys::Right) || input_handler->IsKeyPressed(Keys::D))
-		camera->move({ camera_vel * dt, 0.0f, 0.0f });
-	if (input_handler->IsKeyPressed(Keys::Left) || input_handler->IsKeyPressed(Keys::A))
-		camera->move({ -camera_vel * dt, 0.0f, 0.0f });
+	//Total game time
+	totalTime += dt;
 
-	camera->yaw += input_handler->GetMouseDeltaX() * dt * 10;
-	camera->pitch += input_handler->GetMouseDeltaY() * dt * 10;
+	camera->Update(dt, input_handler);
 
 	// Now set/update object transformations
 	// This can be done using any sequence of transformation matrices,
 	// but the T*R*S order is most common; i.e. scale, then rotate, and then translate.
 	// If no transformation is desired, an identity matrix can be obtained 
 	// via e.g. Mquad = linalg::mat4f_identity; 
-
-	totalTime += dt;
 
 	// Quad model-to-world transformation
 	Mquad = mat4f::translation(0, 0, 0) *			// No translation
@@ -122,6 +114,17 @@ void OurTestScene::Update(
 		mat4f::rotation(0, 0, 0) *
 		mat4f::scaling(.5f);
 
+	// Camera model-to-world
+	Mcamera = mat4f::translation(camera->position) *
+		mat4f::rotation(0, 0, 0) *
+		mat4f::scaling(1.0f);
+
+	// Light model-to-world
+	Mlight = mat4f::translation(0, 6, 0) *
+		mat4f::rotation(0, 0, 0) *
+		mat4f::scaling(1.0f);
+	
+
 	// Increment the rotation angle.
 	angle += angle_vel * dt;
 
@@ -142,9 +145,14 @@ void OurTestScene::Render()
 {
 	// Bind transformation_buffer to slot b0 of the VS
 	dxdevice_context->VSSetConstantBuffers(0, 1, &transformation_buffer);
+	dxdevice_context->PSSetConstantBuffers(0, 1, &camBuffer);
+	dxdevice_context->PSSetConstantBuffers(1, 1, &lightBuffer);
 
 	// Obtain the matrices needed for rendering from the camera
+	
+	//ORIGNINAL
 	Mview = camera->get_WorldToViewMatrix();
+	
 	Mproj = camera->get_ProjectionMatrix();
 
 	// Load matrices + the Cube's transformation to the device and render it
@@ -174,6 +182,11 @@ void OurTestScene::Render()
 	// Load matrices + Sponza's transformation to the device and render it
 	UpdateTransformationBuffer(Msponza, Mview, Mproj);
 	sponza->Render();
+
+	UpdateTransformBufferCam(Mcamera, Mview, Mproj);
+
+	UpdateTransformBufferLight(Mlight, Mview, Mproj);
+	
 }
 
 void OurTestScene::Release()
@@ -181,9 +194,16 @@ void OurTestScene::Release()
 	SAFE_DELETE(cube);
 	SAFE_DELETE(quad);
 	SAFE_DELETE(sponza);
+	SAFE_DELETE(sun);
+	SAFE_DELETE(earth);
+	SAFE_DELETE(moon);
+	SAFE_DELETE(plane);
 	SAFE_DELETE(camera);
 
 	SAFE_RELEASE(transformation_buffer);
+	SAFE_RELEASE(camBuffer);
+	SAFE_RELEASE(lightBuffer);
+	//SAFE_RELEASE(transformation_buffer);
 	// + release other CBuffers
 }
 
@@ -210,6 +230,32 @@ void OurTestScene::InitTransformationBuffer()
 	ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &transformation_buffer));
 }
 
+void OurTestScene::InitTransformBufferCam()
+{
+	HRESULT hr;
+	D3D11_BUFFER_DESC MatrixBuffer_desc = { 0 };
+	MatrixBuffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+	MatrixBuffer_desc.ByteWidth = sizeof(TransformBufferCam);
+	MatrixBuffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	MatrixBuffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	MatrixBuffer_desc.MiscFlags = 0;
+	MatrixBuffer_desc.StructureByteStride = 0;
+	ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &camBuffer));
+}
+
+void OurTestScene::InitTransformBufferLight()
+{
+	HRESULT hr;
+	D3D11_BUFFER_DESC MatrixBuffer_desc = { 0 };
+	MatrixBuffer_desc.Usage = D3D11_USAGE_DYNAMIC;
+	MatrixBuffer_desc.ByteWidth = sizeof(TransformBufferLight);
+	MatrixBuffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	MatrixBuffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	MatrixBuffer_desc.MiscFlags = 0;
+	MatrixBuffer_desc.StructureByteStride = 0;
+	ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &lightBuffer));
+}
+
 void OurTestScene::UpdateTransformationBuffer(
 	mat4f ModelToWorldMatrix,
 	mat4f WorldToViewMatrix,
@@ -223,4 +269,34 @@ void OurTestScene::UpdateTransformationBuffer(
 	matrix_buffer_->WorldToViewMatrix = WorldToViewMatrix;
 	matrix_buffer_->ProjectionMatrix = ProjectionMatrix;
 	dxdevice_context->Unmap(transformation_buffer, 0);
+}
+
+void OurTestScene::UpdateTransformBufferCam(
+	mat4f ModelToWorldMatrix, 
+	mat4f WorldToViewMatrix, 
+	mat4f ProjectionMatrix)
+{
+	// Map the resource buffer, obtain a pointer and then write our matrices to it
+	D3D11_MAPPED_SUBRESOURCE resource;
+	dxdevice_context->Map(camBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+	TransformBufferCam* matrix_buffer_ = (TransformBufferCam*)resource.pData;
+	matrix_buffer_->ModelToWorldMatrix = ModelToWorldMatrix;
+	matrix_buffer_->WorldToViewMatrix = WorldToViewMatrix;
+	matrix_buffer_->ProjectionMatrix = ProjectionMatrix;
+	dxdevice_context->Unmap(camBuffer, 0);
+}
+
+void OurTestScene::UpdateTransformBufferLight(
+	mat4f ModelToWorldMatrix,
+	mat4f WorldToViewMatrix,
+	mat4f ProjectionMatrix)
+{
+	// Map the resource buffer, obtain a pointer and then write our matrices to it
+	D3D11_MAPPED_SUBRESOURCE resource;
+	dxdevice_context->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+	TransformBufferLight* matrix_buffer_ = (TransformBufferLight*)resource.pData;
+	matrix_buffer_->ModelToWorldMatrix = ModelToWorldMatrix;
+	matrix_buffer_->WorldToViewMatrix = WorldToViewMatrix;
+	matrix_buffer_->ProjectionMatrix = ProjectionMatrix;
+	dxdevice_context->Unmap(lightBuffer, 0);
 }

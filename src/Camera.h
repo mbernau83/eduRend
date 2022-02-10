@@ -10,7 +10,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include<math.h>
+#include <algorithm>
+#include <stdexcept>
 #include "vec\vec.h"
 #include "vec\mat.h"
 
@@ -36,6 +37,8 @@ public:
 	float pitch;
 	float yaw;
 	float roll;
+	float velocity;
+	const vec4f forwardViewDirection = { 0.0f, 0.0f, -1.0f, 0.0f };
 
 	Camera(
 		float vfov,
@@ -48,6 +51,7 @@ public:
 		pitch = 0;
 		yaw = 0;
 		roll = 0;
+		velocity = 5;
 	}
 
 	// Move to an absolute position
@@ -61,14 +65,28 @@ public:
 	//
 	void move(const vec3f& v)
 	{
-		position += v;
+		position += v * get_MouseRotation().get_3x3().inverse();
+	}
+
+	void Update(float deltaTime, InputHandler* input_handler)
+	{
+		//Keyboard input WASD expressed as position
+		ReadKeyInput(deltaTime, input_handler);
+
+		//Get mouse input dX & dY
+		yaw += input_handler->GetMouseDeltaX() * deltaTime *.1f;
+		pitch += input_handler->GetMouseDeltaY() * deltaTime * .1f;
+		
+		if (pitch >= fPI / 2)
+			pitch = fPI / 2;
+		if (pitch <= -fPI / 2)
+			pitch = -fPI / 2;
 	}
 
 	// Return World-to-View matrix for this camera
 	//
 	mat4f get_WorldToViewMatrix()
 	{
-		
 		// Assuming a camera's position and rotation is defined by matrices T(p) and R,
 		// the View-to-World transform is T(p)*R (for a first-person style camera).
 		//
@@ -76,11 +94,12 @@ public:
 		//		inverse(T(p)*R) = inverse(R)*inverse(T(p)) = transpose(R)*T(-p)
 		// Since now there is no rotation, this matrix is simply T(-p)
 
-		mat4f side_side = get_RotationMatrix(0, yaw, 0);
-		mat4f up_down = get_RotationMatrix(0, 0, pitch);
-		//up_down.transpose(); //inverts, but I dont like it :-)
-		
-		return  mat4f::translation(-position) * up_down * side_side;
+		mat4f mouse_rotation = get_MouseRotation();
+		mouse_rotation.transpose();
+
+		mat4f translation = mat4f::translation(-position);
+						
+		return  mouse_rotation * translation;
 	}
 
 	// Matrix transforming from View space to Clip space
@@ -93,19 +112,32 @@ public:
 	}
 	
 	//Obtain rotation 
-	mat4f get_RotationMatrix(float roll, float yaw, float pitch) //MY CHANGE
+	mat4f get_RotationMatrix(float roll, float yaw, float pitch)
 	{
-		float r = to_radians(roll);
-		float y = to_radians(yaw);
-		float p = to_radians(pitch);
+		float r = roll;
+		float y = yaw;
+		float p = pitch;
 
 		return mat4f::rotation(r, y, p);
 	}
 
-	//Degrees to rad
-	float to_radians(float value)
+	//Get a rotation from mouse input
+	mat4f get_MouseRotation()
 	{
-		return value / 180 * M_PI;
+		return get_RotationMatrix(0, -yaw, -pitch);
+	}
+
+	void ReadKeyInput(float deltaTime, InputHandler* input_handler)
+	{
+		// Basic camera control
+		if (input_handler->IsKeyPressed(Keys::Up) || input_handler->IsKeyPressed(Keys::W))
+			move({ 0.0f, 0.0f, -velocity * deltaTime });
+		if (input_handler->IsKeyPressed(Keys::Down) || input_handler->IsKeyPressed(Keys::S))
+			move({ 0.0f, 0.0f, velocity * deltaTime });
+		if (input_handler->IsKeyPressed(Keys::Right) || input_handler->IsKeyPressed(Keys::D))
+			move({ velocity * deltaTime, 0.0f, 0.0f });
+		if (input_handler->IsKeyPressed(Keys::Left) || input_handler->IsKeyPressed(Keys::A))
+			move({ -velocity * deltaTime, 0.0f, 0.0f });
 	}
 };
 

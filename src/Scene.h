@@ -55,6 +55,10 @@ class OurTestScene : public Scene
 
 	// CBuffer for transformation matrices
 	ID3D11Buffer* transformation_buffer = nullptr;
+	ID3D11Buffer* camBuffer = nullptr;
+	ID3D11Buffer* lightBuffer = nullptr;
+	ID3D11Buffer* phong_buffer = nullptr;
+
 	// + other CBuffers
 
 	// 
@@ -63,6 +67,28 @@ class OurTestScene : public Scene
 	//
 
 	struct TransformationBuffer
+	{
+		mat4f ModelToWorldMatrix;
+		mat4f WorldToViewMatrix;
+		mat4f ProjectionMatrix;
+	};
+
+	struct TransformBufferCam
+	{
+		mat4f ModelToWorldMatrix;
+		mat4f WorldToViewMatrix;
+		mat4f ProjectionMatrix;
+	};
+
+	struct TransformBufferLight
+	{
+		mat4f ModelToWorldMatrix;
+		mat4f WorldToViewMatrix;
+		mat4f ProjectionMatrix;
+	};
+
+
+	struct TransformationBufferPhong
 	{
 		mat4f ModelToWorldMatrix;
 		mat4f WorldToViewMatrix;
@@ -91,6 +117,8 @@ class OurTestScene : public Scene
 	mat4f Mearth;
 	mat4f Mmoon;
 	mat4f MmyPlane;
+	mat4f Mcamera;
+	mat4f Mlight;
 
 	// World-to-view matrix
 	mat4f Mview;
@@ -108,10 +136,31 @@ class OurTestScene : public Scene
 
 	void InitTransformationBuffer();
 
+	void InitTransformBufferCam();
+
+	void InitTransformBufferLight();
+
+	//void InitTransformationBufferPhong();
+
 	void UpdateTransformationBuffer(
 		mat4f ModelToWorldMatrix,
 		mat4f WorldToViewMatrix,
 		mat4f ProjectionMatrix);
+
+	void UpdateTransformBufferCam(
+		mat4f ModelToWorldMatrix,
+		mat4f WorldToViewMatrix,
+		mat4f ProjectionMatrix);
+
+	void UpdateTransformBufferLight(
+		mat4f ModelToWorldMatrix,
+		mat4f WorldToViewMatrix,
+		mat4f ProjectionMatrix);
+
+	//void UpdateTransformationBufferPhong(
+	//	mat4f ModelToWorldMatrix,
+	//	mat4f WorldToViewMatrix,
+	//	mat4f ProjectionMatrix);
 
 public:
 	OurTestScene(

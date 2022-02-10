@@ -158,29 +158,29 @@ Cube::Cube(
 	indices.push_back(10);
 	indices.push_back(11);
 
-	// Triangle #5
+	// Triangle #7
 	indices.push_back(12);
 	indices.push_back(13);
 	indices.push_back(15);
-	// Triangle #6
+	// Triangle #8
 	indices.push_back(13);
 	indices.push_back(14);
 	indices.push_back(15);
 
-	// Triangle #5
+	// Triangle #9
 	indices.push_back(16);
 	indices.push_back(17);
 	indices.push_back(19);
-	// Triangle #6
+	// Triangle #10
 	indices.push_back(17);
 	indices.push_back(18);
 	indices.push_back(19);
 
-	// Triangle #5
+	// Triangle #11
 	indices.push_back(20);
 	indices.push_back(21);
 	indices.push_back(23);
-	// Triangle #6
+	// Triangle #12
 	indices.push_back(21);
 	indices.push_back(22);
 	indices.push_back(23);
