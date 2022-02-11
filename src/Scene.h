@@ -87,14 +87,6 @@ class OurTestScene : public Scene
 		mat4f ProjectionMatrix;
 	};
 
-
-	struct TransformationBufferPhong
-	{
-		mat4f ModelToWorldMatrix;
-		mat4f WorldToViewMatrix;
-		mat4f ProjectionMatrix;
-	};
-
 	//
 	// Scene content
 	//
