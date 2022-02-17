@@ -18,7 +18,7 @@ Cube::Cube(
 
 	// Populate the vertex array with 4 vertices FRONT
 	Vertex v0, v1, v2, v3;
-	v0.Pos = {  0.5,  0.5f,  0.5f };
+	v0.Pos = { 0.5,  0.5f,  0.5f };
 	v0.Normal = { 0, 0, 1 };
 	v0.TexCoord = { 0, 0 };
 	v1.Pos = { -0.5,  0.5f,  0.5f };
@@ -62,7 +62,7 @@ Cube::Cube(
 	v9.Pos = { 0.5f, -0.5f, -0.5f };
 	v9.Normal = { 0, -1, 0 };
 	v9.TexCoord = { 0, 1 };
-	v10.Pos = {0.5f, -0.5f, 0.5f };
+	v10.Pos = { 0.5f, -0.5f, 0.5f };
 	v10.Normal = { 0, -1, 0 };
 	v10.TexCoord = { 1, 1 };
 	v11.Pos = { -0.5f, -0.5f, 0.5f };
@@ -149,11 +149,11 @@ Cube::Cube(
 	indices.push_back(6);
 	indices.push_back(7);
 
-	 //Triangle #5
+	//Triangle #5
 	indices.push_back(8);
 	indices.push_back(9);
 	indices.push_back(11);
-	 //Triangle #6
+	//Triangle #6
 	indices.push_back(9);
 	indices.push_back(10);
 	indices.push_back(11);
@@ -261,28 +261,28 @@ QuadModel::QuadModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = (UINT)(vertices.size()*sizeof(Vertex));
+	vbufferDesc.ByteWidth = (UINT)(vertices.size() * sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &vertices[0];
 	// Create vertex buffer on device using descriptor & data
 	const HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
 	SETNAME(vertex_buffer, "VertexBuffer");
-    
+
 	//  Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
 	ibufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
+	ibufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	const HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
-    
+
 	nbr_indices = (unsigned int)indices.size();
 }
 
@@ -295,6 +295,9 @@ void Cube::Render() const
 
 	// Bind our index buffer
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
+
+
+
 
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
@@ -309,6 +312,27 @@ void QuadModel::Render() const
 
 	// Bind our index buffer
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
+
+	////////////////////////////////
+	// Does not work, because mesh is never assigned materials?
+	////////////////////////////////
+
+	//Bind material buffer
+	//dxdevice_context->PSSetConstantBuffers(1, 1, &material_Buffer);
+	//
+	//// Iterate drawcalls
+	//for (auto& irange : index_ranges)
+	//{
+	//	// Fetch material
+	//	const Material& mtl = materials[irange.mtl_index];
+	//
+	////Update material buffer for material
+	//UpdateMaterialBuffer(
+	//	vec4f(mtl.Ka, 0),
+	//	vec4f(mtl.Kd, 0),
+	//	vec4f(mtl.Ks, 0));
+	//}
+	////////////////////////////////
 
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
@@ -350,28 +374,28 @@ OBJModel::OBJModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = (UINT)(mesh->vertices.size()*sizeof(Vertex));
+	vbufferDesc.ByteWidth = (UINT)(mesh->vertices.size() * sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &(mesh->vertices)[0];
 	// Create vertex buffer on device using descriptor & data
 	HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
 	SETNAME(vertex_buffer, "VertexBuffer");
-    
+
 	// Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
 	ibufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
+	ibufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
-    
+
 	// Copy materials from mesh
 	append_materials(mesh->materials);
 
@@ -387,9 +411,9 @@ OBJModel::OBJModel(
 
 			hr = LoadTextureFromFile(
 				dxdevice,
-				mtl.Kd_texture_filename.c_str(), 
+				mtl.Kd_texture_filename.c_str(),
 				&mtl.diffuse_texture);
-			std::cout << "\t" << mtl.Kd_texture_filename 
+			std::cout << "\t" << mtl.Kd_texture_filename
 				<< (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
 
@@ -412,18 +436,28 @@ void OBJModel::Render() const
 	// Bind index buffer
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
 
+	//Bind material buffer
+	dxdevice_context->PSSetConstantBuffers(1, 1, &material_Buffer);
+
 	// Iterate drawcalls
 	for (auto& irange : index_ranges)
 	{
 		// Fetch material
 		const Material& mtl = materials[irange.mtl_index];
 
-		// Bind diffuse texture to slot t0 of the PS
-		dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
-		// + bind other textures here, e.g. a normal map, to appropriate slots
+		//Update material buffer for material
+		UpdateMaterialBuffer(
+			vec4f(mtl.Ka, 0),
+			vec4f(mtl.Kd, 0),
+			vec4f(mtl.Ks, 0));
 
-		// Make the drawcall
-		dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
+	// Bind diffuse texture to slot t0 of the PS
+	dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
+	// + bind other textures here, e.g. a normal map, to appropriate slots
+
+	// Make the drawcall
+	dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
+
 	}
 }
 

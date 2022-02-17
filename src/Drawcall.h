@@ -33,7 +33,7 @@ struct Material
 {
 	// Color components (ambient, diffuse & specular),
 	// with default values
-    vec3f Ka = {0,0.5,0}, Kd = {0,0.5,0}, Ks = {1,1,1};
+    vec3f Ka = {0,0.5,1}, Kd = {0,0.5,0}, Ks = {1,1,1};
     
 	std::string name;
 

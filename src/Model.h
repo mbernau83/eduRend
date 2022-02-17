@@ -96,12 +96,11 @@ public:
 		ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &material_Buffer));
 	}
 
-	//Uppdatering per objekt, inte per frame F6 s.24
-	//Varje material har sin egen update metod
+	//Uppdatering per objekt, inte per frame Föreläsning 6 s.24
 	void UpdateMaterialBuffer(
 		vec4f ka,
 		vec4f kd,
-		vec4f ks)
+		vec4f ks) const
 {
 		// Map the resource buffer, obtain a pointer and then write our matrices to it
 		D3D11_MAPPED_SUBRESOURCE resource;
@@ -114,29 +113,9 @@ public:
 }
 
 	//
-	// Abstract render method: must be implemented by derived classes //
-	// Update could maybe be done from here provided that all object has material information
-	// however, if this doesnt work, the logic should be confined to individual Render methods and
-	// this should be implememnted as an abstract method to enforce this method in derrived types.
-	virtual void Render()
-	{
-		//Bind to the material buffer
-		//How to update the second variable? Does it need to reflect the number of updates?
-		dxdevice_context->PSSetConstantBuffers(2, 1, &material_Buffer);
-		
-		for (auto material : materials)
-		{
-			UpdateMaterialBuffer(
-				vec4f(material.Ka, 0),
-				vec4f(material.Kd, 0),
-				vec4f(material.Ks, 0)
-			);
-		}
-
-
-		//if there are materials
-		//then update the material buffer foreach of the materials
-	}
+	//Abstract render
+	//
+	virtual void Render() const = 0;
 
 	//
 	// Destructor
@@ -178,8 +157,6 @@ public:
 
 	~Cube() { }
 };
-
-
 
 class OBJModel : public Model
 {
