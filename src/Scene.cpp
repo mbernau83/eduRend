@@ -52,6 +52,10 @@ void OurTestScene::Init()
 	// Create objects
 	//quad = new QuadModel(dxdevice, dxdevice_context);
 	cube = new Cube(dxdevice, dxdevice_context);
+	cube->material.Ka = vec3f(.8f, 0, 0);
+	cube->material.Kd = vec3f(0, 0, 1);
+	cube->material.Ks = vec3f(1, 1, 1);
+
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
 	sun = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
 	earth = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);

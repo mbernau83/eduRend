@@ -292,7 +292,15 @@ void Cube::Render() const
 	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
 	const UINT32 offset = 0;
 	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
+	
+	//Bind material buffer
+	dxdevice_context->PSSetConstantBuffers(1, 1, &material_Buffer);
 
+		UpdateMaterialBuffer(
+		vec4f(material.Ka, 0),
+		vec4f(material.Kd, 0),
+		vec4f(material.Ks, 0));
+	
 	// Bind our index buffer
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
 

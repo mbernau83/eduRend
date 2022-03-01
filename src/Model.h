@@ -33,13 +33,13 @@ protected:
 	ID3D11Buffer* index_buffer = nullptr;
 	ID3D11Buffer* material_Buffer = nullptr;
 
+public:
 	// [X] Extend the Model.h with a cbuff pointer.
 	Material material; //To F12, no functionality. Is struct, has values to be passed on.
 	// [X]add a method that updates	the cbuffer from a Material object
 	// [X]The cbuffer may be created e.g. in the constructor of Model.
 	// [ ]Updates and binds are made from within the Render() - method of Quad, Cubeand OBJModel, respectively.
 
-public:
 
 	/////////////////////////////////////////////////////////////////////
 	// Translpant from OBJ-model class to enable same functionality in other
