@@ -1,5 +1,6 @@
 Texture2D texDiffuse : register(t0);
 
+SamplerState textSampler : register(s0);
 
 //Databinding that acts as a global variable inside the HLSL
 

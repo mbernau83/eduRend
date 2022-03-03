@@ -7,6 +7,7 @@
 #include "Model.h"
 
 Cube::Cube(
+	const std::string& materialPath,
 	ID3D11Device* dxdevice,
 	ID3D11DeviceContext* dxdevice_context)
 	: Model(dxdevice, dxdevice_context)
@@ -213,7 +214,59 @@ Cube::Cube(
 	const HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
 
+
+	// Load Diffuse texture
+	//
+
+	//CHANGES FOR LAB 3
+
+	HRESULT hr;
+
+		/*/hr = LoadTextureFromFile(
+			dxdevice,
+			material.Kd_texture_filename.c_str(),
+			&material.diffuse_texture);*/
+
+		hr = LoadTextureFromFile(dxdevice, dxdevice_context, materialPath.c_str(), &material.diffuse_texture);
+	
+	// + other texture types here - see Material class
+	// ...
+	//END BLOCK
+
+
 	nbr_indices = (unsigned int)indices.size();
+}
+
+void Cube::Render() const
+{
+	// Bind our vertex buffer
+	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
+	const UINT32 offset = 0;
+	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
+
+	//Bind material buffer
+	dxdevice_context->PSSetConstantBuffers(1, 1, &material_Buffer);
+
+	UpdateMaterialBuffer(
+		vec4f(material.Ka, 0),
+		vec4f(material.Kd, 0),
+		vec4f(material.Ks, 0));
+
+	// Bind our index buffer
+	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
+
+	//LAB3
+
+	dxdevice_context->PSSetShaderResources(
+		0, // textureslot #
+		1, // bind just one buffer
+		&material.diffuse_texture.texture_SRV);
+
+	//END OF BLOCK
+
+
+	// Make the drawcall
+	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
 }
 
 QuadModel::QuadModel(
@@ -286,30 +339,6 @@ QuadModel::QuadModel(
 	nbr_indices = (unsigned int)indices.size();
 }
 
-void Cube::Render() const
-{
-	// Bind our vertex buffer
-	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
-	const UINT32 offset = 0;
-	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
-	
-	//Bind material buffer
-	dxdevice_context->PSSetConstantBuffers(1, 1, &material_Buffer);
-
-		UpdateMaterialBuffer(
-		vec4f(material.Ka, 0),
-		vec4f(material.Kd, 0),
-		vec4f(material.Ks, 0));
-	
-	// Bind our index buffer
-	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
-
-
-
-
-	// Make the drawcall
-	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
-}
 
 void QuadModel::Render() const
 {
