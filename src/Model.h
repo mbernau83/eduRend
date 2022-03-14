@@ -135,6 +135,7 @@ class QuadModel : public Model
 public:
 
 	QuadModel(
+		const std::string& materialPath,
 		ID3D11Device* dx3ddevice,
 		ID3D11DeviceContext* dx3ddevice_context);
 

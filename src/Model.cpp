@@ -12,6 +12,8 @@ Cube::Cube(
 	ID3D11DeviceContext* dxdevice_context)
 	: Model(dxdevice, dxdevice_context)
 {
+	material.Kd_texture_filename = materialPath;
+
 	// Vertex and index arrays
 	// Once their data is loaded to GPU buffers, they are not needed anymore
 	std::vector<Vertex> vertices;
@@ -125,54 +127,55 @@ Cube::Cube(
 	v22.TexCoord = { 1, 1 };
 	v23.Pos = { 0.5f, -0.5f, -0.5f };
 	v23.Normal = { 1, 0, 0 };
-	v19.TexCoord = { 1, 0 };
+	v23.TexCoord = { 1, 0 };
 	vertices.push_back(v20);
 	vertices.push_back(v21);
 	vertices.push_back(v22);
 	vertices.push_back(v23);
 
 	// Populate the index array with two triangles
-	// Triangle #1
+	// Triangle #1 Face FACE 1
 	indices.push_back(0);
 	indices.push_back(1);
 	indices.push_back(3);
-	//// Triangle #2
+
+	//// Triangle #2 FACE 1
 	indices.push_back(1);
 	indices.push_back(2);
 	indices.push_back(3);
 
-	// Triangle #3
+	// Triangle #3 FACE 2
 	indices.push_back(4);
 	indices.push_back(5);
 	indices.push_back(7);
-	// Triangle #4
+	// Triangle #4 FACE 2
 	indices.push_back(5);
 	indices.push_back(6);
 	indices.push_back(7);
 
-	//Triangle #5
+	//Triangle #5 BOTTOM FACE
 	indices.push_back(8);
 	indices.push_back(9);
 	indices.push_back(11);
-	//Triangle #6
+	//Triangle #6  BOTTOM FACE
 	indices.push_back(9);
 	indices.push_back(10);
 	indices.push_back(11);
 
-	// Triangle #7
+	// Triangle #7 TOP FACE
 	indices.push_back(12);
 	indices.push_back(13);
 	indices.push_back(15);
-	// Triangle #8
+	// Triangle #8 TOP FACE
 	indices.push_back(13);
 	indices.push_back(14);
 	indices.push_back(15);
 
-	// Triangle #9
+	// Triangle #9 FACE 3
 	indices.push_back(16);
 	indices.push_back(17);
 	indices.push_back(19);
-	// Triangle #10
+	// Triangle #10 FACE 3
 	indices.push_back(17);
 	indices.push_back(18);
 	indices.push_back(19);
@@ -227,7 +230,11 @@ Cube::Cube(
 			material.Kd_texture_filename.c_str(),
 			&material.diffuse_texture);*/
 
-		hr = LoadTextureFromFile(dxdevice, dxdevice_context, materialPath.c_str(), &material.diffuse_texture);
+		hr = LoadTextureFromFile(
+			dxdevice, 
+			dxdevice_context, 
+			material.Kd_texture_filename.c_str(), 
+			&material.diffuse_texture);
 	
 	// + other texture types here - see Material class
 	// ...
@@ -239,6 +246,7 @@ Cube::Cube(
 
 void Cube::Render() const
 {
+
 	// Bind our vertex buffer
 	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
 	const UINT32 offset = 0;
@@ -264,16 +272,18 @@ void Cube::Render() const
 
 	//END OF BLOCK
 
-
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
 }
 
 QuadModel::QuadModel(
+	const std::string& materialPath,
 	ID3D11Device* dxdevice,
 	ID3D11DeviceContext* dxdevice_context)
 	: Model(dxdevice, dxdevice_context)
+
 {
+	material.Kd_texture_filename = materialPath;
 	// Vertex and index arrays
 	// Once their data is loaded to GPU buffers, they are not needed anymore
 	std::vector<Vertex> vertices;
@@ -284,15 +294,19 @@ QuadModel::QuadModel(
 	v0.Pos = { -0.5, -0.5f, 0.0f };
 	v0.Normal = { 0, 0, 1 };
 	v0.TexCoord = { 0, 0 };
+
 	v1.Pos = { 0.5, -0.5f, 0.0f };
 	v1.Normal = { 0, 0, 1 };
 	v1.TexCoord = { 0, 1 };
+	
 	v2.Pos = { 0.5, 0.5f, 0.0f };
 	v2.Normal = { 0, 0, 1 };
 	v2.TexCoord = { 1, 1 };
+	
 	v3.Pos = { -0.5, 0.5f, 0.0f };
 	v3.Normal = { 0, 0, 1 };
 	v3.TexCoord = { 1, 0 };
+	
 	vertices.push_back(v0);
 	vertices.push_back(v1);
 	vertices.push_back(v2);
@@ -337,6 +351,21 @@ QuadModel::QuadModel(
 	SETNAME(index_buffer, "IndexBuffer");
 
 	nbr_indices = (unsigned int)indices.size();
+
+	//CHANGES FOR LAB 3
+
+	HRESULT hr;
+
+	/*/hr = LoadTextureFromFile(
+		dxdevice,
+		material.Kd_texture_filename.c_str(),
+		&material.diffuse_texture);*/
+
+	hr = LoadTextureFromFile(
+		dxdevice,
+		dxdevice_context,
+		material.Kd_texture_filename.c_str(),
+		&material.diffuse_texture);
 }
 
 
@@ -347,29 +376,25 @@ void QuadModel::Render() const
 	const UINT32 offset = 0;
 	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
 
+	//Bind material buffer
+	dxdevice_context->PSSetConstantBuffers(1, 1, &material_Buffer);
+
+	UpdateMaterialBuffer(
+		vec4f(material.Ka, 0),
+		vec4f(material.Kd, 0),
+		vec4f(material.Ks, 0));
+
 	// Bind our index buffer
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
 
-	////////////////////////////////
-	// Does not work, because mesh is never assigned materials?
-	////////////////////////////////
+	//LAB3
 
-	//Bind material buffer
-	//dxdevice_context->PSSetConstantBuffers(1, 1, &material_Buffer);
-	//
-	//// Iterate drawcalls
-	//for (auto& irange : index_ranges)
-	//{
-	//	// Fetch material
-	//	const Material& mtl = materials[irange.mtl_index];
-	//
-	////Update material buffer for material
-	//UpdateMaterialBuffer(
-	//	vec4f(mtl.Ka, 0),
-	//	vec4f(mtl.Kd, 0),
-	//	vec4f(mtl.Ks, 0));
-	//}
-	////////////////////////////////
+	dxdevice_context->PSSetShaderResources(
+		0, // textureslot #
+		1, // bind just one buffer
+		&material.diffuse_texture.texture_SRV);
+
+	//END OF BLOCK
 
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);

@@ -1,6 +1,6 @@
 Texture2D texDiffuse : register(t0);
 
-SamplerState textSampler : register(s0);
+SamplerState texSampler : register(s0);
 
 //Databinding that acts as a global variable inside the HLSL
 
@@ -17,6 +17,7 @@ cbuffer MaterialBuffer : register(b1)
     float4 kd;
     float4 ks;
 };
+
 
 struct PSIn
 {
@@ -42,6 +43,18 @@ float4 PS_main(PSIn input) : SV_Target
 
 	//Ytnomral (N), Ljusvektor (L), L reflekterad i N (R), vy-vektor (V), glans (alpha/A)
     //--saturate function clamps a value between 0 and 1;
+
+
+    
+    //LAB3
+    float2 textureScale2D = 2;
+    float2 texCoordinate2D = input.TexCoord * textureScale2D;
+
+    float4 textureColor = texDiffuse.Sample(texSampler, texCoordinate2D);
+
+    //END OF BLOCK
+
+
     float3 N = input.Normal;   
    
     float3 L = normalize(LightPosition.xyz - input.PosWorld.xyz); /*the light vector goes here*/
@@ -64,7 +77,7 @@ float4 PS_main(PSIn input) : SV_Target
     //float3 phong = specular;
     float3 phong = ambient + diffuse + specular * blue;
 
-    return float4(phong, 1);
+    return float4(phong, 1) * textureColor;
 
     //return float4(input.TexCoord, 0, 1);
     	

@@ -64,6 +64,9 @@ void OurTestScene::Init()
 	light = new PointLight;
 	light->position = vec3f(0, 10, -10);
 
+	//Lab3
+	floor = new QuadModel("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
+
 	totalTime = 0;
 	earthAngle = 0;
 	moonAngle = 0;
@@ -98,6 +101,11 @@ void OurTestScene::Update(
 		mat4f::rotation(fPI / 2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
 		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
 
+		// Sphere (moon) model-to-world transformation M1 * M2 * M3
+	Mcube = mat4f::translation(0, 1, 2) *
+		mat4f::rotation(0, 0, 0) *
+		mat4f::scaling(.5f);
+
 	// Plane model-to-world transformation
 	MmyPlane = mat4f::translation(0, 3, 0) *
 		mat4f::rotation(0, totalTime, 0) *
@@ -124,6 +132,11 @@ void OurTestScene::Update(
 	Mcamera = mat4f::translation(camera->position) *
 		mat4f::rotation(0, 0, 0) *
 		mat4f::scaling(1.0f);
+
+	Mfloor = mat4f::translation(0, -1.f, 0) *
+		mat4f::rotation(PI/2, -1.0f, 0.0f, 0.0f) *
+		mat4f::scaling(100.5, 100.5, 100.5);
+
 
 	// Light model-to-world //Perhaps not needed
 	
@@ -153,6 +166,7 @@ void OurTestScene::Render()
 	// Bind transformation_buffer to slot b0 of the VS
 	dxdevice_context->VSSetConstantBuffers(0, 1, &transformation_buffer);
 	dxdevice_context->PSSetConstantBuffers(0, 1, &camAndLightBuffer);
+	dxdevice_context->PSSetSamplers(0, 1, &sampler);
 
 
 	// Obtain the matrices needed for rendering from the camera
@@ -163,7 +177,7 @@ void OurTestScene::Render()
 	Mproj = camera->get_ProjectionMatrix();
 
 	// Load matrices + the Cube's transformation to the device and render it
-	UpdateTransformationBuffer(Mquad, Mview, Mproj);
+	UpdateTransformationBuffer(Mcube, Mview, Mproj);
 	cube->Render();
 
 	// Load matrices + the Cube's transformation to the device and render it
@@ -182,6 +196,10 @@ void OurTestScene::Render()
 	UpdateTransformationBuffer(MmyPlane, Mview, Mproj);
 	plane->Render();
 
+	UpdateTransformationBuffer(Mfloor, Mview, Mproj);
+	floor->Render();
+
+
 	//// Load matrices + the Quad's transformation to the device and render it
 	//UpdateTransformationBuffer(Mquad, Mview, Mproj);
 	//quad->Render();
@@ -194,6 +212,8 @@ void OurTestScene::Render()
 
 	//UpdateTransformBufferLight(Mlight, Mview, Mproj);
 
+	//Hacky solution - why is this supposed to be done, because this cant be good
+	InitSampler();
 }
 
 void OurTestScene::Release()
@@ -210,6 +230,7 @@ void OurTestScene::Release()
 
 	SAFE_RELEASE(transformation_buffer);
 	SAFE_RELEASE(camAndLightBuffer);
+	SAFE_RELEASE(sampler);
 
 	//SAFE_RELEASE(transformation_buffer);
 	// + release other CBuffers
@@ -223,6 +244,24 @@ void OurTestScene::WindowResize(
 		camera->aspect = float(window_width) / window_height;
 
 	Scene::WindowResize(window_width, window_height);
+}
+
+void OurTestScene::InitSampler()
+{
+	HRESULT hr;
+	D3D11_SAMPLER_DESC sampler_desc = { };
+	//sampler_desc.Filter = D3D11_FILTER_ANISOTROPIC;				
+	sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	//sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;			
+	sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampler_desc.MipLODBias = 0.0f;								
+	sampler_desc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;								
+	sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampler_desc.MinLOD = 0.0f;
+	sampler_desc.MaxLOD = FLT_MAX;
+	ASSERT(hr = dxdevice->CreateSamplerState(&sampler_desc, &sampler));
 }
 
 void OurTestScene::InitTransformationBuffer()
@@ -250,8 +289,6 @@ void OurTestScene::InitTransformBufferCamAndLight()
 	MatrixBuffer_desc.StructureByteStride = 0;
 	ASSERT(hr = dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &camAndLightBuffer));
 }
-
-
 
 void OurTestScene::UpdateTransformationBuffer(
 	mat4f ModelToWorldMatrix,

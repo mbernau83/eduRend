@@ -56,6 +56,7 @@ class OurTestScene : public Scene
 	// CBuffer for transformation matrices
 	ID3D11Buffer* transformation_buffer = nullptr;
 	ID3D11Buffer* camAndLightBuffer = nullptr;
+	ID3D11SamplerState* sampler = nullptr;
 
 
 	// + other CBuffers
@@ -99,6 +100,7 @@ class OurTestScene : public Scene
 	OBJModel* moon;
 	OBJModel* plane;
 	PointLight* light;
+	QuadModel* floor;
 
 
 
@@ -110,6 +112,8 @@ class OurTestScene : public Scene
 	mat4f Mmoon;
 	mat4f MmyPlane;
 	mat4f Mcamera;
+	mat4f Mcube;
+	mat4f Mfloor;
 	//mat4f Mlight; //Perhaps not needed
 
 	// World-to-view matrix
@@ -125,6 +129,8 @@ class OurTestScene : public Scene
 	float earthAngle;
 	float moonAngle;
 	float totalTime;
+
+	void InitSampler();
 
 	void InitTransformationBuffer();
 
@@ -164,6 +170,7 @@ public:
 	void WindowResize(
 		int window_width,
 		int window_height) override;
+
 };
 
 #endif
