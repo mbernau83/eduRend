@@ -112,6 +112,37 @@ public:
 		dxdevice_context->Unmap(material_Buffer, 0);
 }
 
+	void compute_TB(Vertex& v0, Vertex& v1, Vertex& v2)
+	{
+		//LAB4
+		vec3f Q1, Q2;
+		float s1, s2, t1, t2;
+
+		Q1 = v1.Pos - v0.Pos;
+		Q2 = v2.Pos - v0.Pos;
+
+		s1 = v1.TexCoord.x - v0.TexCoord.x;
+		s2 = v2.TexCoord.x; -v0.TexCoord.x;
+		t1 = v1.TexCoord.y - v0.TexCoord.y;
+		t2 = v2.TexCoord.y - v0.TexCoord.y;
+
+		
+		/////////////////Matrice multiplication/////////////////
+		//|	tangent		|				|t2	   -t1 ||Q1.x	Q1.y	Q1.z|
+		//|				| =	scalar *	|		   ||					|
+		//|	binormal	|				|-s2	s1 ||Q2.x	Q2.y	Q2.z|
+		
+		float scalar = 1 / (s1 * t2 - s2 * t1);
+
+		//Tangent and binormal 2x3 matrix expressed by layers as vectors
+		vec3f tangent = { t2 * Q1.x + (-t1) * Q2.x, t2 * Q1.y + (-t1) * Q2.y, t2 * Q1.z + (-t1) * Q2.z };
+		vec3f binormal = { (-s2) * Q1.x + s1 * Q2.x, (-s2) * Q1.y + s1 * Q2.y , (-s2) * Q1.z + s1 * Q2.z};
+
+		v0.Tangent = v1.Tangent = v2.Tangent = (tangent * scalar);
+		v0.Binormal = v1.Binormal = v2.Binormal = (binormal * scalar);
+
+	}
+
 	//
 	//Abstract render
 	//
@@ -163,7 +194,10 @@ public:
 class OBJModel : public Model
 {
 
+
+
 public:
+
 
 	OBJModel(
 		const std::string& objfile,
@@ -171,8 +205,10 @@ public:
 		ID3D11DeviceContext* dxdevice_context);
 
 	virtual void Render() const;
-
+	
+	
 	~OBJModel();
+
 };
 
 #endif

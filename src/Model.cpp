@@ -225,17 +225,25 @@ Cube::Cube(
 
 	HRESULT hr;
 
-		/*/hr = LoadTextureFromFile(
-			dxdevice,
-			material.Kd_texture_filename.c_str(),
-			&material.diffuse_texture);*/
+	/*/hr = LoadTextureFromFile(
+		dxdevice,
+		material.Kd_texture_filename.c_str(),
+		&material.diffuse_texture);*/
 
-		hr = LoadTextureFromFile(
-			dxdevice, 
-			dxdevice_context, 
-			material.Kd_texture_filename.c_str(), 
-			&material.diffuse_texture);
-	
+	hr = LoadTextureFromFile(
+		dxdevice,
+		dxdevice_context,
+		material.Kd_texture_filename.c_str(),
+		&material.diffuse_texture);
+
+	HRESULT hrn;
+
+	hrn = LoadTextureFromFile(
+		dxdevice,
+		dxdevice_context,
+		material.normal_texture_filename.c_str(),
+		&material.normal_texture);
+
 	// + other texture types here - see Material class
 	// ...
 	//END BLOCK
@@ -298,15 +306,15 @@ QuadModel::QuadModel(
 	v1.Pos = { 0.5, -0.5f, 0.0f };
 	v1.Normal = { 0, 0, 1 };
 	v1.TexCoord = { 0, 1 };
-	
+
 	v2.Pos = { 0.5, 0.5f, 0.0f };
 	v2.Normal = { 0, 0, 1 };
 	v2.TexCoord = { 1, 1 };
-	
+
 	v3.Pos = { -0.5, 0.5f, 0.0f };
 	v3.Normal = { 0, 0, 1 };
 	v3.TexCoord = { 1, 0 };
-	
+
 	vertices.push_back(v0);
 	vertices.push_back(v1);
 	vertices.push_back(v2);
@@ -430,6 +438,16 @@ OBJModel::OBJModel(
 		i_ofs = (unsigned int)indices.size();
 	}
 
+	//LAB4
+	for (int i = 0; i < i_ofs; i += 3)
+	{
+		Model::compute_TB(
+			mesh->vertices[indices[i + 0]],
+			mesh->vertices[indices[i + 1]],
+			mesh->vertices[indices[i + 2]]);
+	}
+	//
+
 	// Vertex array descriptor
 	D3D11_BUFFER_DESC vbufferDesc = { 0 };
 	vbufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -481,7 +499,24 @@ OBJModel::OBJModel(
 
 		// + other texture types here - see Material class
 		// ...
+
+		// LAB4 Load Normal-map texture
+		//
+
+		HRESULT hrn;
+
+		if (mtl.normal_texture_filename.size()) {
+
+			hrn = LoadTextureFromFile(
+				dxdevice,
+				mtl.normal_texture_filename.c_str(),
+				&mtl.normal_texture);
+			std::cout << "\t" << mtl.normal_texture_filename
+				<< (SUCCEEDED(hrn) ? " - OK" : "- FAILED") << std::endl;
+		}
+
 	}
+
 	std::cout << "Done." << std::endl;
 
 	SAFE_DELETE(mesh);
@@ -490,9 +525,11 @@ OBJModel::OBJModel(
 
 void OBJModel::Render() const
 {
+
 	// Bind vertex buffer
 	const UINT32 stride = sizeof(Vertex);
 	const UINT32 offset = 0;
+
 	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
 
 	// Bind index buffer
@@ -513,21 +550,26 @@ void OBJModel::Render() const
 			vec4f(mtl.Kd, 0),
 			vec4f(mtl.Ks, 0));
 
-	// Bind diffuse texture to slot t0 of the PS
-	dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
-	// + bind other textures here, e.g. a normal map, to appropriate slots
+		// Bind diffuse texture to slot t0 of the PS
+		dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
+		// + bind other textures here, e.g. a normal map, to appropriate slots
+		dxdevice_context->PSSetShaderResources(1, 1, &mtl.normal_texture.texture_SRV);
 
-	// Make the drawcall
-	dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
+		// Make the drawcall
+		dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
 
 	}
+
 }
+
 
 OBJModel::~OBJModel()
 {
+
 	for (auto& material : materials)
 	{
 		SAFE_RELEASE(material.diffuse_texture.texture_SRV);
+		SAFE_RELEASE(material.normal_texture.texture_SRV);
 
 		// Release other used textures ...
 	}

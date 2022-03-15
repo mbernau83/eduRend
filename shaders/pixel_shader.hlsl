@@ -1,4 +1,5 @@
 Texture2D texDiffuse : register(t0);
+Texture2D texNormal : register(t1);
 
 SamplerState texSampler : register(s0);
 
@@ -25,6 +26,8 @@ struct PSIn
     float3 PosWorld : World_Position;
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEX;
+    float3 Binormal : BINORMAL;
+    float3 Tangent : TANGENT;
 };
 
 //-----------------------------------------------------------------------------------------
@@ -45,9 +48,18 @@ float4 PS_main(PSIn input) : SV_Target
     //--saturate function clamps a value between 0 and 1;
 
 
+
+    //LAB4
+
+    float3 tangent = normalize(input.Tangent);
+    float3 binormal = normalize(input.Binormal);
+
+    float3x3 TBN = transpose(float3x3(tangent, binormal, input.Normal));
+    float4 normalT = texNormal.Sample(texSampler, input.TexCoord);
+    float3 newTNormal = mul(TBN, (normalT * 2 - 1).xyz);
     
     //LAB3
-    float2 textureScale2D = 2;
+    float2 textureScale2D = 1;
     float2 texCoordinate2D = input.TexCoord * textureScale2D;
 
     float4 textureColor = texDiffuse.Sample(texSampler, texCoordinate2D);
@@ -55,7 +67,7 @@ float4 PS_main(PSIn input) : SV_Target
     //END OF BLOCK
 
 
-    float3 N = input.Normal;   
+    float3 N = newTNormal; //input.Normal;   
    
     float3 L = normalize(LightPosition.xyz - input.PosWorld.xyz); /*the light vector goes here*/
     float LdotN = dot(L, N);
@@ -66,18 +78,20 @@ float4 PS_main(PSIn input) : SV_Target
     float RdotV = dot(R, V); //Viewing angle influence on specular highlight. Saturate clamps
     float alpha = 5; //Good range 0-128;
    
-    float3 blue = { 0, 0, 1 };
+    //float4 blue = { 0, 0, 1, 0 };
     
-    float3 ambient = ka.xyz;
-    float3 diffuse = kd.xyz * saturate(LdotN);
-    float3 specular = /*ks.xyz **/ pow(saturate(RdotV), alpha);
+    float4 ambient = float4(ka.xyz, 0);
+    float4 diffuse = float4(kd.xyz * saturate(LdotN), 0);
+    float4 specular = float4(ks.xyz * pow(saturate(RdotV), alpha), 0);
    
     //float3 phong = ambient;
     //float3 phong = diffuse;
     //float3 phong = specular;
-    float3 phong = ambient + diffuse + specular * blue;
+    float4 phong = ambient + diffuse + specular;
 
-    return float4(phong, 1) * textureColor;
+    return phong * textureColor;
+
+    //return float4(input.Binormal * 0.5 + 0.5, 0); //phong * textureColor;
 
     //return float4(input.TexCoord, 0, 1);
     	
