@@ -5,9 +5,11 @@
 //
 
 #include "Model.h"
+#include "Texture.h"
 
 Cube::Cube(
 	const std::string& materialPath,
+	const char** listOfcubePaths,
 	ID3D11Device* dxdevice,
 	ID3D11DeviceContext* dxdevice_context)
 	: Model(dxdevice, dxdevice_context)
@@ -133,6 +135,13 @@ Cube::Cube(
 	vertices.push_back(v22);
 	vertices.push_back(v23);
 
+
+	//for (Vertex instance : vertices)
+	//{
+	//	instance.Normal *= -1;
+	//}
+
+
 	// Populate the index array with two triangles
 	// Triangle #1 Face FACE 1
 	indices.push_back(0);
@@ -244,6 +253,12 @@ Cube::Cube(
 		material.normal_texture_filename.c_str(),
 		&material.normal_texture);
 
+
+	HRESULT hrq;
+
+	hrq = LoadCubeTextureFromFile(dxdevice, listOfcubePaths, &material.cube_texture);
+
+
 	// + other texture types here - see Material class
 	// ...
 	//END BLOCK
@@ -277,11 +292,20 @@ void Cube::Render() const
 		0, // textureslot #
 		1, // bind just one buffer
 		&material.diffuse_texture.texture_SRV);
+	//
 
-	//END OF BLOCK
+	//LAB5
+	dxdevice_context->PSSetShaderResources(2, 1, &material.cube_texture.texture_SRV);
+	//
 
 	// Make the drawcall
 	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
+}
+
+Cube::~Cube()
+{
+	SAFE_RELEASE(material.diffuse_texture.texture_SRV);
+	SAFE_RELEASE(material.cube_texture.texture_SRV);
 }
 
 QuadModel::QuadModel(

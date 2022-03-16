@@ -1,7 +1,9 @@
 Texture2D texDiffuse : register(t0);
 Texture2D texNormal : register(t1);
+TextureCube texCube : register(t2);
 
 SamplerState texSampler : register(s0);
+SamplerState cubeSampler : register(s1);
 
 //Databinding that acts as a global variable inside the HLSL
 
@@ -47,8 +49,6 @@ float4 PS_main(PSIn input) : SV_Target
 	//Ytnomral (N), Ljusvektor (L), L reflekterad i N (R), vy-vektor (V), glans (alpha/A)
     //--saturate function clamps a value between 0 and 1;
 
-
-
     //LAB4
 
     float3 tangent = normalize(input.Tangent);
@@ -79,6 +79,16 @@ float4 PS_main(PSIn input) : SV_Target
     float alpha = 5; //Good range 0-128;
    
     //float4 blue = { 0, 0, 1, 0 };
+
+       
+    //LAB5
+
+    bool isSkybox = false;
+
+    float3 viewReflect = reflect(V, N);
+    float4 cubeReflection = texCube.Sample(cubeSampler, viewReflect);
+    //return cubeReflection;
+
     
     float4 ambient = float4(ka.xyz, 0);
     float4 diffuse = float4(kd.xyz * saturate(LdotN), 0);
@@ -87,7 +97,8 @@ float4 PS_main(PSIn input) : SV_Target
     //float3 phong = ambient;
     //float3 phong = diffuse;
     //float3 phong = specular;
-    float4 phong = ambient + diffuse + specular;
+    float4 phong = ambient + diffuse + specular * cubeReflection;
+
 
     return phong * textureColor;
 

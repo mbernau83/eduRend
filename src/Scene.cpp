@@ -51,10 +51,6 @@ void OurTestScene::Init()
 
 	// Create objects
 	//quad = new QuadModel(dxdevice, dxdevice_context);
-	cube = new Cube("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
-	cube->material.Ka = vec3f(.8f, 0, 0);
-	cube->material.Kd = vec3f(0, 0, 1);
-	cube->material.Ks = vec3f(1, 1, 1);
 
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
 	sun = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
@@ -62,14 +58,27 @@ void OurTestScene::Init()
 	moon = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
 	plane = new OBJModel("assets/Trojan/Trojan.obj", dxdevice, dxdevice_context);
 	light = new PointLight;
-	light->position = vec3f(0, 10, -10);
+	light->position = vec3f(0, -15, 0);
 
 	//Lab3
-	floor = new QuadModel("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
+	//floor = new QuadModel("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
 
 	totalTime = 0;
 	earthAngle = 0;
 	moonAngle = 0;
+
+	const char* cube_filenames[6] =
+	{
+		"assets/cubemaps/debug_cubemap/debug_posx.png",
+		"assets/cubemaps/debug_cubemap/debug_negx.png",
+		"assets/cubemaps/debug_cubemap/debug_posy.png",
+		"assets/cubemaps/debug_cubemap/debug_negy.png",
+		"assets/cubemaps/debug_cubemap/debug_posz.png",
+		"assets/cubemaps/debug_cubemap/debug_negz.png",
+	};
+
+	cube = new Cube("assets/textures/yroadcrossing.png", cube_filenames, dxdevice, dxdevice_context);
+
 }
 
 //
@@ -104,7 +113,7 @@ void OurTestScene::Update(
 		// Sphere (moon) model-to-world transformation M1 * M2 * M3
 	Mcube = mat4f::translation(0, 1, 2) *
 		mat4f::rotation(0, 0, 0) *
-		mat4f::scaling(.5f);
+		mat4f::scaling(1.5f);
 
 	// Plane model-to-world transformation
 	MmyPlane = mat4f::translation(0, 3, 0) *
@@ -134,12 +143,12 @@ void OurTestScene::Update(
 		mat4f::scaling(1.0f);
 
 	Mfloor = mat4f::translation(0, -1.f, 0) *
-		mat4f::rotation(PI/2, -1.0f, 0.0f, 0.0f) *
+		mat4f::rotation(PI / 2, -1.0f, 0.0f, 0.0f) *
 		mat4f::scaling(100.5, 100.5, 100.5);
 
 
 	// Light model-to-world //Perhaps not needed
-	
+
 	//Mlight = mat4f::translation(light->position) *
 	//	mat4f::rotation(0, 0, 0) *
 	//	mat4f::scaling(1.0f);
@@ -196,8 +205,10 @@ void OurTestScene::Render()
 	UpdateTransformationBuffer(MmyPlane, Mview, Mproj);
 	plane->Render();
 
-	UpdateTransformationBuffer(Mfloor, Mview, Mproj);
-	floor->Render();
+
+	//LAB 3
+	// UpdateTransformationBuffer(Mfloor, Mview, Mproj);
+	//floor->Render();
 
 
 	//// Load matrices + the Quad's transformation to the device and render it
@@ -253,11 +264,11 @@ void OurTestScene::InitSampler()
 	//sampler_desc.Filter = D3D11_FILTER_ANISOTROPIC;				
 	sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	//sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;			
+	sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampler_desc.MipLODBias = 0.0f;								
-	sampler_desc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;								
+	sampler_desc.MipLODBias = 0.0f;
+	sampler_desc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
 	sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampler_desc.MinLOD = 0.0f;
 	sampler_desc.MaxLOD = FLT_MAX;

@@ -183,12 +183,13 @@ public:
 
 	Cube(
 		const std::string& materialPath,
+		const char** listOfcubePaths,
 		ID3D11Device* dx3ddevice,
 		ID3D11DeviceContext* dx3ddevice_context);
 
 	virtual void Render() const;
 
-	~Cube() { }
+	~Cube();
 };
 
 class OBJModel : public Model

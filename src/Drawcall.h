@@ -45,6 +45,7 @@ struct Material
 	// Device textures
 	Texture diffuse_texture;
 	Texture normal_texture;
+	Texture cube_texture;
 	// + other texture types
 };
 
