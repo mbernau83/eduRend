@@ -62,10 +62,10 @@ void OurTestScene::Init()
 	moon = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
 	plane = new OBJModel("assets/Trojan/Trojan.obj", dxdevice, dxdevice_context);
 	light = new PointLight;
-	light->position = vec3f(0, 10, -10);
+	light->position = vec3f(0, 10, 0);
 
 	//Lab3
-	floor = new QuadModel("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
+	//floor = new QuadModel("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
 
 	totalTime = 0;
 	earthAngle = 0;
@@ -196,8 +196,8 @@ void OurTestScene::Render()
 	UpdateTransformationBuffer(MmyPlane, Mview, Mproj);
 	plane->Render();
 
-	UpdateTransformationBuffer(Mfloor, Mview, Mproj);
-	floor->Render();
+	//UpdateTransformationBuffer(Mfloor, Mview, Mproj);
+	//floor->Render();
 
 
 	//// Load matrices + the Quad's transformation to the device and render it

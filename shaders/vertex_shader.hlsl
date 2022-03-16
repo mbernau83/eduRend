@@ -55,7 +55,7 @@ PSIn VS_main(VSIn input)
 	//Tänkte att output.Normal redan är en beräkning för model to world och att vi 
 	//redan har en position i output position som vi kan återanvända. Är dock inte säker.
 
-    output.PosWorld = ModelToWorldMatrix._m03_m13_m23; //mul(ModelToWorldMatrix, float4(pos.xyz, 0)).xyz;
+    output.PosWorld = mul(ModelToWorldMatrix, float4(input.Pos, 0)).xyz; //mul(ModelToWorldMatrix, float4(pos.xyz, 0)).xyz;
 	
 		
 	return output;

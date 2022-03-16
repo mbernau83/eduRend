@@ -53,10 +53,12 @@ float4 PS_main(PSIn input) : SV_Target
 
     float3 tangent = normalize(input.Tangent);
     float3 binormal = normalize(input.Binormal);
+    float3 normal = normalize(input.Normal);
 
-    float3x3 TBN = transpose(float3x3(tangent, binormal, input.Normal));
+    float3x3 TBN = transpose(float3x3(tangent, binormal, normal));
     float4 normalT = texNormal.Sample(texSampler, input.TexCoord);
-    float3 newTNormal = mul(TBN, (normalT * 2 - 1).xyz);
+
+    float3 N = mul(TBN, (normalT * 2 - 1).xyz);
     
     //LAB3
     float2 textureScale2D = 1;
@@ -67,7 +69,7 @@ float4 PS_main(PSIn input) : SV_Target
     //END OF BLOCK
 
 
-    float3 N = newTNormal; //input.Normal;   
+    //float3 N = newTNormal; //input.Normal;   
    
     float3 L = normalize(LightPosition.xyz - input.PosWorld.xyz); /*the light vector goes here*/
     float LdotN = dot(L, N);
@@ -89,6 +91,7 @@ float4 PS_main(PSIn input) : SV_Target
     //float3 phong = specular;
     float4 phong = ambient + diffuse + specular;
 
+    //return float4(tangent.xyz, 0) * 0.5 + 0.5;
     return phong * textureColor;
 
     //return float4(input.Binormal * 0.5 + 0.5, 0); //phong * textureColor;

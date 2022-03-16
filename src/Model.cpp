@@ -421,6 +421,9 @@ OBJModel::OBJModel(
 
 	// Load and organize indices in ranges per drawcall (material)
 
+
+
+
 	std::vector<unsigned> indices;
 	unsigned int i_ofs = 0;
 
@@ -478,6 +481,7 @@ OBJModel::OBJModel(
 
 	// Copy materials from mesh
 	append_materials(mesh->materials);
+
 
 	// Go through materials and load textures (if any) to device
 	std::cout << "Loading textures..." << std::endl;
