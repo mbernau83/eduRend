@@ -136,10 +136,10 @@ Cube::Cube(
 	vertices.push_back(v23);
 
 
-	//for (Vertex instance : vertices)
-	//{
-	//	instance.Normal *= -1;
-	//}
+	for (Vertex instance : vertices)
+	{
+		instance.Normal *= -1;
+	}
 
 
 	// Populate the index array with two triangles
@@ -310,12 +310,14 @@ Cube::~Cube()
 
 QuadModel::QuadModel(
 	const std::string& materialPath,
+	const std::string& normalPath,
 	ID3D11Device* dxdevice,
 	ID3D11DeviceContext* dxdevice_context)
 	: Model(dxdevice, dxdevice_context)
 
 {
 	material.Kd_texture_filename = materialPath;
+	material.normal_texture_filename = normalPath;
 	// Vertex and index arrays
 	// Once their data is loaded to GPU buffers, they are not needed anymore
 	std::vector<Vertex> vertices;
@@ -388,16 +390,35 @@ QuadModel::QuadModel(
 
 	HRESULT hr;
 
-	/*/hr = LoadTextureFromFile(
-		dxdevice,
-		material.Kd_texture_filename.c_str(),
-		&material.diffuse_texture);*/
+	// Load Diffuse texture
+	//
+	if (material.Kd_texture_filename.size()) {
 
-	hr = LoadTextureFromFile(
-		dxdevice,
-		dxdevice_context,
-		material.Kd_texture_filename.c_str(),
-		&material.diffuse_texture);
+		hr = LoadTextureFromFile(
+			dxdevice,
+			material.Kd_texture_filename.c_str(),
+			&material.diffuse_texture);
+		std::cout << "\t" << material.Kd_texture_filename
+			<< (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
+	}
+
+	// + other texture types here - see Material class
+	// ...
+
+	// LAB4 Load Normal-map texture
+	//
+
+	HRESULT hrn;
+
+	if (material.normal_texture_filename.size()) {
+
+		hrn = LoadTextureFromFile(
+			dxdevice,
+			material.normal_texture_filename.c_str(),
+			&material.normal_texture);
+		std::cout << "\t" << material.normal_texture_filename
+			<< (SUCCEEDED(hrn) ? " - OK" : "- FAILED") << std::endl;
+	}
 }
 
 
@@ -420,11 +441,11 @@ void QuadModel::Render() const
 	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
 
 	//LAB3
-
-	dxdevice_context->PSSetShaderResources(
-		0, // textureslot #
-		1, // bind just one buffer
-		&material.diffuse_texture.texture_SRV);
+		
+	// Bind diffuse texture to slot t0 of the PS
+	dxdevice_context->PSSetShaderResources(0, 1, &material.diffuse_texture.texture_SRV);
+	// + bind other textures here, e.g. a normal map, to appropriate slots
+	dxdevice_context->PSSetShaderResources(1, 1, &material.normal_texture.texture_SRV);
 
 	//END OF BLOCK
 

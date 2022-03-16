@@ -63,6 +63,9 @@ void OurTestScene::Init()
 	//Lab3
 	//floor = new QuadModel("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
 
+	//Lab5
+	floor = new QuadModel("assets/textures/stone47_diffuse.JPG", "assets/textures/stone47_bump.JPG", dxdevice, dxdevice_context);
+
 	totalTime = 0;
 	earthAngle = 0;
 	moonAngle = 0;
@@ -111,9 +114,9 @@ void OurTestScene::Update(
 		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
 
 		// Sphere (moon) model-to-world transformation M1 * M2 * M3
-	Mcube = mat4f::translation(0, 1, 2) *
+	Mcube = mat4f::translation(0, 1, 0) *
 		mat4f::rotation(0, 0, 0) *
-		mat4f::scaling(1.5f);
+		mat4f::scaling(10.f);
 
 	// Plane model-to-world transformation
 	MmyPlane = mat4f::translation(0, 3, 0) *
@@ -142,10 +145,15 @@ void OurTestScene::Update(
 		mat4f::rotation(0, 0, 0) *
 		mat4f::scaling(1.0f);
 
-	Mfloor = mat4f::translation(0, -1.f, 0) *
-		mat4f::rotation(PI / 2, -1.0f, 0.0f, 0.0f) *
-		mat4f::scaling(100.5, 100.5, 100.5);
+	//LAB3
+	//Mfloor = mat4f::translation(0, -1.f, 0) *
+	//	mat4f::rotation(PI / 2, -1.0f, 0.0f, 0.0f) *
+	//	mat4f::scaling(100.5, 100.5, 100.5);
 
+	//LAB5
+	Mfloor = mat4f::translation(0, -1.f, -11) *
+		mat4f::rotation(PI/4, -1.0f, 0.0f, 0.0f) *
+		mat4f::scaling(2);
 
 	// Light model-to-world //Perhaps not needed
 
@@ -206,9 +214,9 @@ void OurTestScene::Render()
 	plane->Render();
 
 
-	//LAB 3
-	// UpdateTransformationBuffer(Mfloor, Mview, Mproj);
-	//floor->Render();
+	//LAB 3 & LAB 5
+	UpdateTransformationBuffer(Mfloor, Mview, Mproj);
+	floor->Render();
 
 
 	//// Load matrices + the Quad's transformation to the device and render it

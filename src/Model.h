@@ -136,7 +136,7 @@ public:
 
 		//Tangent and binormal 2x3 matrix expressed by layers as vectors
 		vec3f tangent = { t2 * Q1.x + (-t1) * Q2.x, t2 * Q1.y + (-t1) * Q2.y, t2 * Q1.z + (-t1) * Q2.z };
-		vec3f binormal = { (-s2) * Q1.x + s1 * Q2.x, (-s2) * Q1.y + s1 * Q2.y , (-s2) * Q1.z + s1 * Q2.z};
+		vec3f binormal = { (-s2) * Q1.x + s1 * Q2.x, (-s2) * Q1.y + s1 * Q2.y , (-s2) * Q1.z + s1 * Q2.z };
 
 		v0.Tangent = v1.Tangent = v2.Tangent = (tangent * scalar);
 		v0.Binormal = v1.Binormal = v2.Binormal = (binormal * scalar);
@@ -167,6 +167,7 @@ public:
 
 	QuadModel(
 		const std::string& materialPath,
+		const std::string& normalPath,
 		ID3D11Device* dx3ddevice,
 		ID3D11DeviceContext* dx3ddevice_context);
 

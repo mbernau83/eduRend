@@ -76,18 +76,16 @@ float4 PS_main(PSIn input) : SV_Target
     //float3 R = normalize(2 * saturate(dot(L, N)) * N - L); //a reflection vector //;
     float3 R = normalize(-reflect(L, N));
     float RdotV = dot(R, V); //Viewing angle influence on specular highlight. Saturate clamps
-    float alpha = 5; //Good range 0-128;
+    float alpha = 15; //Good range 0-128;
    
     //float4 blue = { 0, 0, 1, 0 };
 
        
     //LAB5
-
-    bool isSkybox = false;
-
-    float3 viewReflect = reflect(V, N);
+    
+    float3 viewReflect = reflect(V, N).xyz;
     float4 cubeReflection = texCube.Sample(cubeSampler, viewReflect);
-    //return cubeReflection;
+    return cubeReflection;
 
     
     float4 ambient = float4(ka.xyz, 0);
@@ -98,7 +96,6 @@ float4 PS_main(PSIn input) : SV_Target
     //float3 phong = diffuse;
     //float3 phong = specular;
     float4 phong = ambient + diffuse + specular * cubeReflection;
-
 
     return phong * textureColor;
 
