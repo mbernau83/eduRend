@@ -4,6 +4,7 @@ TextureCube texCube : register(t2);
 
 SamplerState texSampler : register(s0);
 SamplerState cubeSampler : register(s1);
+SamplerState skyboxSampler : register(s2); //Is this neccessary?
 
 //Databinding that acts as a global variable inside the HLSL
 
@@ -51,13 +52,21 @@ float4 PS_main(PSIn input) : SV_Target
 
     //LAB4
 
+    //float3 tangent = normalize(input.Tangent - dot(input.Tangent, input.Normal) * input.Normal);
+    //float3 binormal = normalize(input.Binormal);
+    //float3 normal = normalize(cross(input.Normal, tangent));
+
     float3 tangent = normalize(input.Tangent);
     float3 binormal = normalize(input.Binormal);
+    float3 normal = normalize(input.Normal);
 
-    float3x3 TBN = transpose(float3x3(tangent, binormal, input.Normal));
-    float4 normalT = texNormal.Sample(texSampler, input.TexCoord);
-    float3 newTNormal = mul(TBN, (normalT * 2 - 1).xyz);
+    float3x3 TBN = transpose(float3x3(tangent, binormal, normal));
+    float3 normalT = texNormal.Sample(texSampler, input.TexCoord).rgb * 2 - 1; //Uncompress each component (LUNA 18.6)
+    float3 newTNormal = mul(normalT, TBN); //Compute new normal (LUNA 18.6)
     
+
+    return float4(newTNormal, 0) * 0.5 + 0.5; //Debuging tangent and binormal, newTNormal
+     
     //LAB3
     float2 textureScale2D = 1;
     float2 texCoordinate2D = input.TexCoord * textureScale2D;
@@ -79,13 +88,17 @@ float4 PS_main(PSIn input) : SV_Target
     float alpha = 15; //Good range 0-128;
    
     //float4 blue = { 0, 0, 1, 0 };
-
-       
-    //LAB5
     
-    float3 viewReflect = reflect(V, N).xyz;
-    float4 cubeReflection = texCube.Sample(cubeSampler, viewReflect);
-    return cubeReflection;
+
+    ////LAB5
+    ////Reflections
+    //float3 viewReflect = reflect(V, N).xyz; //Lookup vector
+    //float4 cubeReflection = texCube.Sample(cubeSampler, viewReflect);
+    //return cubeReflection;
+
+    ////Skybox
+    float4 cubeReflection = texCube.Sample(cubeSampler, V);
+    //return cubeReflection;
 
     
     float4 ambient = float4(ka.xyz, 0);
@@ -95,9 +108,9 @@ float4 PS_main(PSIn input) : SV_Target
     //float3 phong = ambient;
     //float3 phong = diffuse;
     //float3 phong = specular;
-    float4 phong = ambient + diffuse + specular * cubeReflection;
+    float4 phong = ambient + diffuse + specular;
 
-    return phong * textureColor;
+    return phong * textureColor * cubeReflection;
 
     //return float4(input.Binormal * 0.5 + 0.5, 0); //phong * textureColor;
 

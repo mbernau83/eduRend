@@ -13,8 +13,6 @@ Scene::Scene(
 	window_height(window_height)
 { }
 
-
-
 void Scene::WindowResize(
 	int window_width,
 	int window_height)
@@ -32,6 +30,7 @@ OurTestScene::OurTestScene(
 {
 	InitTransformationBuffer();
 	InitTransformBufferCamAndLight();
+	InitSampler();
 	// + init other CBuffers
 }
 
@@ -58,7 +57,7 @@ void OurTestScene::Init()
 	moon = new OBJModel("assets/sphere/sphere.obj", dxdevice, dxdevice_context);
 	plane = new OBJModel("assets/Trojan/Trojan.obj", dxdevice, dxdevice_context);
 	light = new PointLight;
-	light->position = vec3f(0, -15, 0);
+	light->position = vec3f(0, 15, 0);
 
 	//Lab3
 	//floor = new QuadModel("assets/textures/yroadcrossing.png", dxdevice, dxdevice_context);
@@ -80,7 +79,7 @@ void OurTestScene::Init()
 		"assets/cubemaps/debug_cubemap/debug_negz.png",
 	};
 
-	cube = new Cube("assets/textures/yroadcrossing.png", cube_filenames, dxdevice, dxdevice_context);
+	skybox = new Skybox("assets/Skybox/skybox.obj", cube_filenames, dxdevice, dxdevice_context);
 
 }
 
@@ -154,6 +153,12 @@ void OurTestScene::Update(
 	Mfloor = mat4f::translation(0, -1.f, -11) *
 		mat4f::rotation(PI/4, -1.0f, 0.0f, 0.0f) *
 		mat4f::scaling(2);
+	
+	Mskybox =
+		mat4f::translation(0, 10, 0) *
+		mat4f::rotation(0, 0, 0) *
+		mat4f::scaling(500);
+			
 
 	// Light model-to-world //Perhaps not needed
 
@@ -195,7 +200,7 @@ void OurTestScene::Render()
 
 	// Load matrices + the Cube's transformation to the device and render it
 	UpdateTransformationBuffer(Mcube, Mview, Mproj);
-	cube->Render();
+	//cube->Render();
 
 	// Load matrices + the Cube's transformation to the device and render it
 	UpdateTransformationBuffer(Msun, Mview, Mproj);
@@ -226,6 +231,10 @@ void OurTestScene::Render()
 	// Load matrices + Sponza's transformation to the device and render it
 	UpdateTransformationBuffer(Msponza, Mview, Mproj);
 	sponza->Render();
+
+	UpdateTransformationBuffer(Mskybox, Mview, Mproj);
+	skybox->Render();
+
 
 	UpdateTransformBufferCamAndLight(camera->position, light->position);
 

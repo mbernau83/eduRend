@@ -126,21 +126,20 @@ public:
 		t1 = v1.TexCoord.y - v0.TexCoord.y;
 		t2 = v2.TexCoord.y - v0.TexCoord.y;
 
-		
+
 		/////////////////Matrice multiplication/////////////////
 		//|	tangent		|				|t2	   -t1 ||Q1.x	Q1.y	Q1.z|
 		//|				| =	scalar *	|		   ||					|
 		//|	binormal	|				|-s2	s1 ||Q2.x	Q2.y	Q2.z|
-		
+
 		float scalar = 1 / (s1 * t2 - s2 * t1);
 
 		//Tangent and binormal 2x3 matrix expressed by layers as vectors
-		vec3f tangent = { t2 * Q1.x + (-t1) * Q2.x, t2 * Q1.y + (-t1) * Q2.y, t2 * Q1.z + (-t1) * Q2.z };
-		vec3f binormal = { (-s2) * Q1.x + s1 * Q2.x, (-s2) * Q1.y + s1 * Q2.y , (-s2) * Q1.z + s1 * Q2.z };
+		vec3f tangent = { (t2 * Q1.x + (-t1) * Q2.x) * scalar, (t2 * Q1.y + (-t1) * Q2.y) * scalar, (t2 * Q1.z + (-t1) * Q2.z) * scalar };
+		vec3f binormal = { ((-s2) * Q1.x + s1 * Q2.x) * scalar, ((-s2) * Q1.y + s1 * Q2.y) * scalar , ((-s2) * Q1.z + s1 * Q2.z) * scalar };
 
-		v0.Tangent = v1.Tangent = v2.Tangent = (tangent * scalar);
-		v0.Binormal = v1.Binormal = v2.Binormal = (binormal * scalar);
-
+		v0.Tangent = v1.Tangent = v2.Tangent = tangent;
+		v0.Binormal = v1.Binormal = v2.Binormal = binormal;
 	}
 
 	//
@@ -213,4 +212,25 @@ public:
 
 };
 
+
+class Skybox : public Model
+{
+
+
+
+public:
+
+
+	Skybox(
+		const std::string& objfile,
+		const char** cube_filenames,
+		ID3D11Device* dxdevice,
+		ID3D11DeviceContext* dxdevice_context);
+
+	virtual void Render() const;
+	
+	
+	~Skybox();
+
+};
 #endif

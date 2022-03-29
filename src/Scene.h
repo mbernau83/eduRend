@@ -101,6 +101,7 @@ class OurTestScene : public Scene
 	OBJModel* plane;
 	PointLight* light;
 	QuadModel* floor;
+	Skybox* skybox;
 
 
 
@@ -114,6 +115,7 @@ class OurTestScene : public Scene
 	mat4f Mcamera;
 	mat4f Mcube;
 	mat4f Mfloor;
+	mat4f Mskybox;
 	//mat4f Mlight; //Perhaps not needed
 
 	// World-to-view matrix
